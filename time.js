@@ -17,8 +17,7 @@ function getActivityRules(timeSheet) {
 
 function getLegendRules(timeSheet) {
   const ruleRanges = timeSheet.getRange(`A2:B${timeSheet.getLastRow()}`);
-
-  const cells = ['A1', 'A2', 'B1', 'B2'];
+  
   const days = ['Sunday', 'Saturday'];
   let dayFormula = '';
   ['A1', 'A2', 'B1', 'B2'].forEach(cell => {
