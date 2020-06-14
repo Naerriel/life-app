@@ -9,84 +9,6 @@ function nextCell(row, column, lastColumn) {
   return [row, column + 1];
 }
 
-function getData() {
-  const Spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  const expSheet = Spreadsheet.getSheetByName('Exp');
-  const timeSheet = Spreadsheet.getSheetByName('Time');
-
-  const timeSheetLastColumn = timeSheet.getLastColumn();
-
-  const maxRows = expSheet.getMaxRows();
-  const maxColumns = expSheet.getMaxColumns();
-  const range = expSheet.getRange(1, 1, maxRows, maxColumns);
-  const expSheetValues = range.getValues();
-
-  return {
-    Spreadsheet,
-    expSheet,
-    timeSheet,
-    timeSheetLastLastColumn,
-    maxRows,
-    maxColumns,
-    range,
-    expSheetValues,
-  };
-}
-
-function updateExp() {
-  const {
-    Spreadsheet,
-    expSheet,
-    timeSheet,
-    timeSheetLastLastColumn,
-    maxRows,
-    maxColumns,
-    range,
-    expSheetValues,
-  } = getData();
-
-  const lastSyncedCellRow = 0;
-  const lastSyncedCellCol = 2;
-  let [row, column] = expSheetValues[lastSyncedCellRow][lastSyncedCellCol].split(',').map(val => parseInt(val, 10));
-  const startedRow = row;
-
-  const timeSheetSignificantColumn = 3;
-  const timeSheetValues = timeSheet.getRange(row, timeSheetSignificantColumn, row + 1, timeSheetLastColumn).getValues();
-
-  column -= timeSheetSignificantColumn;
-  row = 0;
-
-  for (row, column; !!timeSheetValues[row][column]; [row, column] = nextCell(row, column, lastColumn)) {
-    const activityName = activityIdToName[timeSheetValues[row][column]];
-    if (!activityName) {
-      break;
-    }
-    activities[activityName].skillExp.forEach(skill => {
-      addExpToSheet(skill.multiplier, skill.name, expSheetValues, expReason.TimeSpent);
-    });
-  }
-  expSheetValues[lastSyncedCellRow][lastSyncedCellCol] = `${startedRow + row},${timeSheetSignificantColumn + column}`;
-
-
-}
-
-function setValues(expSheet, expSheetValues) {
-  const columnsNeeded = expSheetValues.reduce((acc, val) => Math.max(acc, val.length), 0);
-  let columnsToAdd = 0;
-  if (columnsNeeded > maxColumns) {
-    columnsToAdd = columnsNeeded - maxColumns + 10;
-    expSheet.insertColumns(maxColumns, columnsToAdd);
-    range = expSheet.getRange(1, 1, maxRows, maxColumns + columnsToAdd);
-  }
-
-  expSheetValues.forEach(row => {
-    while(row.length < maxColumns + columnsToAdd) {
-      row.push('');
-    }
-  });
-  range.setValues(expSheetValues);
-}
-
 const firstFreeColumn = {};
 
 function addExpToSheet(exp, skillName, sheet, reason) {
@@ -109,4 +31,63 @@ function addExpToSheet(exp, skillName, sheet, reason) {
   sheet[skillPosition][freeColumn] = exp;
   sheet[skillPosition + 1][freeColumn] = 'Today, yo';
   sheet[skillPosition + 2][freeColumn] = reason;
+}
+
+function setValues({ expSheet, expSheetValues, maxRows, maxColumns }) {
+  const columnsNeeded = expSheetValues.reduce((acc, val) => Math.max(acc, val.length), 0);
+  let columnsToAdd = 0;
+  if (columnsNeeded > maxColumns) {
+    columnsToAdd = columnsNeeded - maxColumns + 10;
+    expSheet.insertColumns(maxColumns, columnsToAdd);
+  }
+  const range = expSheet.getRange(1, 1, maxRows, maxColumns + columnsToAdd);
+
+  expSheetValues.forEach(row => {
+    while(row.length < maxColumns + columnsToAdd) {
+      row.push('');
+    }
+  });
+  range.setValues(expSheetValues);
+}
+
+function updateExp() {
+  // Fetch data
+  const Spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const expSheet = Spreadsheet.getSheetByName('Exp');
+  const timeSheet = Spreadsheet.getSheetByName('Time');
+  const timeSheetLastColumn = timeSheet.getLastColumn();
+  const maxRows = expSheet.getMaxRows();
+  const maxColumns = expSheet.getMaxColumns();
+  const range = expSheet.getRange(1, 1, maxRows, maxColumns);
+  const expSheetValues = range.getValues();
+
+  const lastSyncedCellRow = 0;
+  const lastSyncedCellCol = 2;
+  const timeSheetSignificantColumn = 3;
+
+
+  let [row, column] = expSheetValues[lastSyncedCellRow][lastSyncedCellCol].split(',').map(val => parseInt(val, 10));
+  const startingRow = row;
+
+  const timeSheetValues = timeSheet.getRange(row, timeSheetSignificantColumn, row + 1, timeSheetLastColumn).getValues();
+
+  column -= timeSheetSignificantColumn;
+  row = 0;
+
+  for (row, column; !!timeSheetValues[row][column]; [row, column] = nextCell(row, column, timeSheetLastColumn)) {
+    const activityName = activityIdToName[timeSheetValues[row][column]];
+    if (!activityName) {
+      break;
+    }
+    activities[activityName].skillExp.forEach(skill => {
+      addExpToSheet(skill.multiplier, skill.name, expSheetValues, expReason.TimeSpent);
+    });
+  }
+  expSheetValues[lastSyncedCellRow][lastSyncedCellCol] = `${startingRow + row},${timeSheetSignificantColumn + column}`;
+  setValues({
+    expSheet,
+    expSheetValues,
+    maxRows,
+    maxColumns
+  });
 }
