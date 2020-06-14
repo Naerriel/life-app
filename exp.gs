@@ -11,7 +11,7 @@ function nextCell(row, column, lastColumn) {
 
 const firstFreeColumn = {};
 
-function addExpToSheet(exp, skillName, sheet, reason) {
+function addExpToSheet({ exp, skillName, sheet, reason, date }) {
   const paddingTop = 1;
   const skillPaddingTop = 1;
   const rowsPerSkill = 4;
@@ -29,7 +29,7 @@ function addExpToSheet(exp, skillName, sheet, reason) {
   firstFreeColumn[skillName] = freeColumn + 1;
 
   sheet[skillPosition][freeColumn] = exp;
-  sheet[skillPosition + 1][freeColumn] = 'Today, yo';
+  sheet[skillPosition + 1][freeColumn] = date;
   sheet[skillPosition + 2][freeColumn] = reason;
 }
 
@@ -48,6 +48,20 @@ function setValues({ expSheet, expSheetValues, maxRows, maxColumns }) {
     }
   });
   range.setValues(expSheetValues);
+}
+
+function getDateFromCell({ row, column }) {
+  const startingDate = '2020-06-12';
+  let date = new Date(startingDate);
+
+  const daysToAdd = Math.floor(row / 2) - 1;
+  date = new Date(date.valueOf() + 1000 * 60 * 60 * 24 * daysToAdd);
+
+  const halfHours = (column - 3);
+  const hours = Math.floor(halfHours / 2);
+  const minutes = (halfHours % 2) * 30;
+  date.setHours(hours, minutes);
+  return date.toLocaleString();
 }
 
 function updateExp() {
@@ -80,7 +94,16 @@ function updateExp() {
       break;
     }
     activities[activityName].skillExp.forEach(skill => {
-      addExpToSheet(skill.multiplier, skill.name, expSheetValues, expReason.TimeSpent);
+      addExpToSheet({
+        exp: skill.multiplier,
+        name: skill.name,
+        sheet: expSheetValues,
+        reason: expReason.TimeSpent,
+        date: getDateFromCell({
+          row: row + startingRow,
+          column: column + timeSheetSignificantColumn - 1,
+        }),
+      });
     });
   }
   expSheetValues[lastSyncedCellRow][lastSyncedCellCol] = `${startingRow + row},${timeSheetSignificantColumn + column}`;
