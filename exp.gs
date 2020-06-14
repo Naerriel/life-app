@@ -96,7 +96,7 @@ function updateExp() {
     activities[activityName].skillExp.forEach(skill => {
       addExpToSheet({
         exp: skill.multiplier,
-        name: skill.name,
+        skillName: skill.name,
         sheet: expSheetValues,
         reason: expReason.TimeSpent,
         date: getDateFromCell({
