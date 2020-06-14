@@ -12,10 +12,10 @@ function nextCell(row, column, lastColumn) {
 const firstFreeColumn = {};
 
 function addExpToSheet({ exp, skillName, sheet, reason, date }) {
-  const paddingTop = 1;
+  const paddingTop = 5;
   const skillPaddingTop = 1;
   const rowsPerSkill = 4;
-  const skillPosition = skills[skillName].position * rowsPerSkill + paddingTop + skillPaddingTop;
+  const skillPosition = skillsConsts[skillName].position * rowsPerSkill + paddingTop + skillPaddingTop;
 
   let freeColumn = firstFreeColumn[skillName];
   if (!freeColumn) {
@@ -64,6 +64,16 @@ function getDateFromCell({ row, column }) {
   return date.toLocaleString();
 }
 
+function mergeMatrices(smallerMatrix, biggerMatrix) {
+  for (let row = 0; row < smallerMatrix.length; row++) {
+    for (let col = 0; col < smallerMatrix[row].length; col++) {
+      if (smallerMatrix[row][col]) {
+        biggerMatrix[row][col] = smallerMatrix[row][col];
+      }
+    }
+  }
+}
+
 function updateExp() {
   // Fetch data
   const Spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
@@ -74,6 +84,7 @@ function updateExp() {
   const maxColumns = expSheet.getMaxColumns();
   const range = expSheet.getRange(1, 1, maxRows, maxColumns);
   const expSheetValues = range.getValues();
+  const formulas = range.getFormulas();
 
   const lastSyncedCellRow = 0;
   const lastSyncedCellCol = 2;
@@ -107,6 +118,7 @@ function updateExp() {
     });
   }
   expSheetValues[lastSyncedCellRow][lastSyncedCellCol] = `${startingRow + row},${timeSheetSignificantColumn + column}`;
+  mergeMatrices(formulas, expSheetValues);
   setValues({
     expSheet,
     expSheetValues,

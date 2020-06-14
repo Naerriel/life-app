@@ -1,82 +1,12 @@
-const skill = {
-  Communication: 'Communication',
-  Leadership: 'Leadership',
+function createSkills() {
+  const Spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const skillsSheet = Spreadsheet.getSheetByName('Skills');
 
-  CriticalThinking: 'Critical thinking',
-  CreativeThinking: 'Creative thinking',
-  Learning: 'Learning',
+  const response = UrlFetchApp.fetch(
+    'https://drive.google.com/file/d/1CfVTlI3nmf852SESrd1o7vIMV2NAxXix/view?usp=sharing');
+  const binaryData = response.getContent();
 
-  SelfManagement: 'Self-management',
-  Resilience: 'Resilience',
-
-  Strength: 'Strength',
-  Endurance: 'Endurance',
-  Flexibility: 'Flexibility',
-  Health: 'Health',
-};
-
-const skills = {
-  [skill.Communication]: {
-    position: 0,
-  },
-  [skill.Leadership]: {
-    position: 1,
-  },
-  [skill.CriticalThinking]: {
-    position: 2,
-  },
-  [skill.CreativeThinking]: {
-    position: 3,
-  },
-  [skill.Learning]: {
-    position: 4,
-  },
-  [skill.SelfManagement]: {
-    position: 5,
-  },
-  [skill.Resilience]: {
-    position: 6,
-  },
-  [skill.Strength]: {
-    position: 7,
-  },
-  [skill.Endurance]: {
-    position: 8,
-  },
-  [skill.Flexibility]: {
-    position: 9,
-  },
-  [skill.Health]: {
-    position: 10,
-  },
-};
-
-const skillsGroups = [
-  {
-    name: 'social',
-    skills: [
-      'Communication',
-      'Leadership',
-    ],
-  }, {
-    name: 'mind',
-    skills: [
-      'Critical thinking',
-      'Creative thinking',
-      'Learning',
-    ],
-  }, {
-    name: 'self',
-    skills: [
-      'Self-management',
-      'Resilience'
-    ],
-  }, {
-    name: 'body',
-    skills: [
-      'Strength',
-      'Endurance',
-      'Flexibility',
-      'Health'
-    ],
-  }];
+  // Insert the image in cell A1.
+  const blob = Utilities.newBlob(binaryData, 'image/png', 'MyImageName');
+  sheet.insertImage(blob, 1, 1);
+}
